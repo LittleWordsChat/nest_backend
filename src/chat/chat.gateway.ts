@@ -38,7 +38,7 @@ export class ChatGateway
 
     const token = client.handshake.auth.token || client.handshake.headers.token;
     const decoded = this.jwtService.verify(token);
-    const user = await this.usersService.findOneById(decoded.userId);
+    const user = await this.usersService.findOneById(decoded.sub);
 
     if (user) {
       client.join(user._id.toString());
@@ -52,7 +52,7 @@ export class ChatGateway
   handleDisconnect(client: Socket): void {
     const token = client.handshake.auth.token || client.handshake.headers.token;
     const decoded = this.jwtService.verify(token);
-    this.onlineUsers.delete(decoded.userId.toString());
+    this.onlineUsers.delete(decoded.sub.toString());
     this.logger.log(`Client disconnect ${client.id}`);
     this.server.emit('onlineUsers', Array.from(this.onlineUsers));
   }
@@ -126,7 +126,7 @@ export class ChatGateway
   async handleSeen(client: Socket, msgByUserId: string): Promise<void> {
     const token = client.handshake.auth.token || client.handshake.headers.token;
     const decoded = this.jwtService.verify(token);
-    const userId = decoded.userId;
+    const userId = decoded.sub;
 
     await this.messagesService.markMessageAsSeen(userId, msgByUserId);
 
