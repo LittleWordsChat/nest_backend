@@ -18,7 +18,7 @@ export class ChatGateway
   implements OnGatewayInit<Server>, OnGatewayConnection, OnGatewayDisconnect
 {
   @WebSocketServer() server: Server;
-  private logger: Logger;
+  private logger: Logger = new Logger('ChatGateway');
 
   private onlineUsers = new Set<string>();
 
