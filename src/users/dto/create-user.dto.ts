@@ -12,5 +12,5 @@ export class createUserDto {
     @IsNotEmpty()
     readonly password: string;
 
-    readonly profile_picture: string;
+    readonly profile_pic: string;
 }

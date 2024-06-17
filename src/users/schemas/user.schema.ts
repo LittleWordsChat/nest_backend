@@ -13,7 +13,7 @@ export class User extends Document {
     password: string
 
     @Prop({ default: '' })
-    profile_picture: string
+    profile_pic: string
 }
 
 export const UserSchema = SchemaFactory.createForClass(User)
