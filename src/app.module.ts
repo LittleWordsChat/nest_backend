@@ -4,6 +4,9 @@ import { UsersModule } from './users/users.module';
 import { MongooseModule } from '@nestjs/mongoose';
 import { APP_FILTER } from '@nestjs/core';
 import { ConfigModule } from '@nestjs/config';
+import { ConversationsService } from './chat/conversations/conversations.service';
+import { MessagesService } from './chat/messages/messages.service';
+import { ChatModule } from './chat/chat.module';
 
 @Catch(UnauthorizedException)
 export class UnauthorizedExceptionFilter implements ExceptionFilter {
@@ -33,14 +36,15 @@ export class UnauthorizedExceptionFilter implements ExceptionFilter {
     MongooseModule.forRoot(process.env.MONGODB_URI, {
 
     }),
-    UsersModule
+    UsersModule,
+    ChatModule
   ],
   controllers: [],
   providers: [
     {
       provide: APP_FILTER,
       useClass: UnauthorizedExceptionFilter,
-    }
+    },
   ],
 })
 export class AppModule { }
