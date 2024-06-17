@@ -7,23 +7,23 @@ import { Response } from 'express';
 
 @Controller()
 export class AuthController {
-    constructor(private readonly authService: AuthService) { }
+  constructor(private readonly authService: AuthService) {}
 
-    @Post('email')
-    async checkEmail(@Body() checkEmailDto: CheckEmailDto, @Res() res: Response) {
-        const result = await this.authService.checkEmail(checkEmailDto)
-        if (result.status === 400)
-            return res.status(HttpStatus.NOT_FOUND).json(result)
-        return res.status(HttpStatus.OK).json(result)
-    }
+  @Post('email')
+  async checkEmail(@Body() checkEmailDto: CheckEmailDto, @Res() res: Response) {
+    const result = await this.authService.checkEmail(checkEmailDto);
+    if (result.status === 400)
+      return res.status(HttpStatus.NOT_FOUND).json(result);
+    return res.status(HttpStatus.OK).json(result);
+  }
 
-    @Post('password')
-    async login(@Body() loginDto: LoginDto) {
-        return this.authService.login(loginDto)
-    }
+  @Post('password')
+  async login(@Body() loginDto: LoginDto) {
+    return this.authService.login(loginDto);
+  }
 
-    @Post('register')
-    async register(@Body() createUserDto: createUserDto) {
-        return this.authService.register(createUserDto)
-    }
+  @Post('register')
+  async register(@Body() createUserDto: createUserDto) {
+    return this.authService.register(createUserDto);
+  }
 }

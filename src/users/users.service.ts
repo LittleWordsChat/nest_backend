@@ -7,30 +7,30 @@ import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class UsersService {
-    constructor(@InjectModel(User.name) private userModel: Model<User>) { }
+  constructor(@InjectModel(User.name) private userModel: Model<User>) {}
 
-    async create(createUserDto: createUserDto): Promise<User> {
-        const createdUser = new this.userModel(createUserDto);
-        return createdUser.save();
-    }
+  async create(createUserDto: createUserDto): Promise<User> {
+    const createdUser = new this.userModel(createUserDto);
+    return createdUser.save();
+  }
 
-    async findByEmail(email: string): Promise<User> {
-        return await this.userModel.findOne({ email }).select('-password')
-    }
+  async findByEmail(email: string): Promise<User> {
+    return await this.userModel.findOne({ email }).select('-password');
+  }
 
-    async findById(userId: string): Promise<User> {
-        return await this.userModel.findById(userId)
-    }
+  async findById(userId: string): Promise<User> {
+    return await this.userModel.findById(userId);
+  }
 
-    async findOneById(userId: string): Promise<User> {
-        return await this.userModel.findById(userId).select('-password')
-    }
+  async findOneById(userId: string): Promise<User> {
+    return await this.userModel.findById(userId).select('-password');
+  }
 
-    async update(id: string, updateUserDto: UpdateUserDto) {
-        const existingUser = await this.findOneById(id)
-        if (!existingUser)
-            throw new NotFoundException(`User with ID ${id} not found`)
-        Object.assign(existingUser, updateUserDto)
-        return existingUser.save()
-    }
+  async update(id: string, updateUserDto: UpdateUserDto) {
+    const existingUser = await this.findOneById(id);
+    if (!existingUser)
+      throw new NotFoundException(`User with ID ${id} not found`);
+    Object.assign(existingUser, updateUserDto);
+    return existingUser.save();
+  }
 }

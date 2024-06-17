@@ -1,4 +1,12 @@
-import { ArgumentsHost, Catch, ExceptionFilter, HttpException, HttpStatus, Module, UnauthorizedException } from '@nestjs/common';
+import {
+  ArgumentsHost,
+  Catch,
+  ExceptionFilter,
+  HttpException,
+  HttpStatus,
+  Module,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { MongooseModule } from '@nestjs/mongoose';
@@ -11,11 +19,14 @@ import { ChatModule } from './chat/chat.module';
 @Catch(UnauthorizedException)
 export class UnauthorizedExceptionFilter implements ExceptionFilter {
   catch(exception: UnauthorizedException, host: ArgumentsHost) {
-    const ctx = host.switchToHttp()
-    const response = ctx.getResponse()
-    const request = ctx.getRequest()
-    const status = exception instanceof HttpException ? exception.getStatus() : HttpStatus.UNAUTHORIZED
-    const exceptionResponse = exception.getResponse() as any
+    const ctx = host.switchToHttp();
+    const response = ctx.getResponse();
+    const request = ctx.getRequest();
+    const status =
+      exception instanceof HttpException
+        ? exception.getStatus()
+        : HttpStatus.UNAUTHORIZED;
+    const exceptionResponse = exception.getResponse() as any;
 
     response.status(status).json({
       statusCode: status,
@@ -23,21 +34,19 @@ export class UnauthorizedExceptionFilter implements ExceptionFilter {
       path: request.url,
       message: exceptionResponse.message,
       logout: exceptionResponse.logout,
-    })
+    });
   }
 }
 
 @Module({
   imports: [
     ConfigModule.forRoot({
-      envFilePath: '.env'
+      envFilePath: '.env',
     }),
     AuthModule,
-    MongooseModule.forRoot(process.env.MONGODB_URI, {
-
-    }),
+    MongooseModule.forRoot(process.env.MONGODB_URI, {}),
     UsersModule,
-    ChatModule
+    ChatModule,
   ],
   controllers: [],
   providers: [
@@ -47,4 +56,4 @@ export class UnauthorizedExceptionFilter implements ExceptionFilter {
     },
   ],
 })
-export class AppModule { }
+export class AppModule {}
