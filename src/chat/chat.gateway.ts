@@ -1,6 +1,8 @@
 import { Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import {
+  ConnectedSocket,
+  MessageBody,
   OnGatewayConnection,
   OnGatewayDisconnect,
   OnGatewayInit,
@@ -58,7 +60,11 @@ export class ChatGateway
   }
 
   @SubscribeMessage('message-page')
-  async handleMessagePage(client: Socket, userId: string): Promise<void> {
+  async handleMessagePage(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() data: { userId: string },
+  ): Promise<void> {
+    const { userId } = data;
     const user = await this.usersService.findOneById(userId);
     const payload = {
       _id: user._id,
@@ -67,7 +73,6 @@ export class ChatGateway
       profile_pic: user.profile_pic,
       online: this.onlineUsers.has(userId),
     };
-
     client.emit('message-user', payload);
 
     const conversationMessages =
@@ -79,11 +84,14 @@ export class ChatGateway
   }
 
   @SubscribeMessage('newMessage')
-  async handleNewMessage(client: Socket, data: any): Promise<void> {
+  async handleNewMessage(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() data: any,
+  ): Promise<void> {
     const conversation =
       await this.conversationsService.findOrCreateConversation(
         data.sender,
-        data.reciver,
+        data.receiver,
       );
     const message = await this.messagesService.createMessage({
       text: data.text,
@@ -116,14 +124,22 @@ export class ChatGateway
   }
 
   @SubscribeMessage('sidebar')
-  async handleSidebar(client: Socket, currentUserId: string): Promise<void> {
+  async handleSidebar(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() data: { currentUserId: string },
+  ): Promise<void> {
+    const { currentUserId } = data;
     const conversations =
       await this.conversationsService.getUserConversations(currentUserId);
     client.emit('conversation', conversations);
   }
 
   @SubscribeMessage('seen')
-  async handleSeen(client: Socket, msgByUserId: string): Promise<void> {
+  async handleSeen(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() data: { msgByUserId: string },
+  ): Promise<void> {
+    const { msgByUserId } = data;
     const token = client.handshake.auth.token || client.handshake.headers.token;
     const decoded = this.jwtService.verify(token);
     const userId = decoded.sub;

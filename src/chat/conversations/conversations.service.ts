@@ -16,8 +16,8 @@ export class ConversationsService {
   ): Promise<Conversation> {
     let conversation = await this.conversationModel.findOne({
       $or: [
-        { sender: senderId, reciver: receiverId },
-        { sender: receiverId, reciver: senderId },
+        { sender: senderId, receiver: receiverId },
+        { sender: receiverId, receiver: senderId },
       ],
     });
     if (!conversation) {

@@ -16,7 +16,7 @@ export class Message extends Document {
   seen: boolean;
 
   @Prop({ type: Types.ObjectId, ref: 'User', required: true })
-  msgBYUserId: Types.ObjectId;
+  msgByUserId: Types.ObjectId;
 }
 
 export const MessageSchema = SchemaFactory.createForClass(Message);

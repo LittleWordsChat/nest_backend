@@ -17,7 +17,7 @@ export class MessagesService {
   async markMessageAsSeen(userId: string, msgByUserId: string): Promise<void> {
     await this.messageModel.updateMany(
       {
-        msgBYUserId: msgByUserId,
+        msgByUserId: msgByUserId,
         seen: false,
       },
       {
