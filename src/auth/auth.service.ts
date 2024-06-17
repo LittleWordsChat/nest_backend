@@ -27,7 +27,7 @@ export class AuthService {
             status: 200,
             message: 'Email Verify',
             success: true,
-            data: { id: user._id },
+            data: user,
         }
     }
 
