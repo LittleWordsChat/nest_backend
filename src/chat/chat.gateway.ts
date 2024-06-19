@@ -63,6 +63,7 @@ export class ChatGateway
   handleDisconnect(client: Socket): void {
     const user = client['user'];
     this.onlineUsers.delete(user?._id.toString());
+    client.disconnect()
     this.logger.log(`Client disconnect ${client.id}`);
     this.server.emit('onlineUsers', Array.from(this.onlineUsers));
   }
