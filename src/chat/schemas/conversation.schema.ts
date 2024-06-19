@@ -10,7 +10,7 @@ export class Conversation extends Document {
   @Prop({ required: true, type: Types.ObjectId, ref: 'User' })
   receiver: Types.ObjectId;
 
-  @Prop({ type: [{ type: Types.ObjectId, ref: 'Message' }] })
+  @Prop({ type: [{ type: Types.ObjectId, ref: 'Message' }], ref: 'Message' })
   messages: Message[];
 }
 

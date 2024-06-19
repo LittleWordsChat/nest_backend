@@ -6,7 +6,10 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ChatGateway } from './chat.gateway';
 import { UsersModule } from 'src/users/users.module';
 import { MongooseModule } from '@nestjs/mongoose';
-import { Conversation, ConversationSchema } from './schemas/conversation.schema';
+import {
+  Conversation,
+  ConversationSchema,
+} from './schemas/conversation.schema';
 import { Message, MessageSchema } from './schemas/message.schema';
 
 @Module({
@@ -15,12 +18,14 @@ import { Message, MessageSchema } from './schemas/message.schema';
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
         secret: configService.get<string>('JWT_SECRET_KEY'),
-        signOptions: { expiresIn: '60m' },
+        signOptions: { expiresIn: '15d' },
       }),
       inject: [ConfigService],
     }),
     UsersModule,
-    MongooseModule.forFeature([{ name: Conversation.name, schema: ConversationSchema }]),
+    MongooseModule.forFeature([
+      { name: Conversation.name, schema: ConversationSchema },
+    ]),
     MongooseModule.forFeature([{ name: Message.name, schema: MessageSchema }]),
   ],
   controllers: [],

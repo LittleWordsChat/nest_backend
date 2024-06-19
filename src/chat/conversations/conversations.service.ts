@@ -52,16 +52,38 @@ export class ConversationsService {
         ],
       })
       .populate('messages')
-      .sort({ updatedAt: -1 });
-
+      .sort({ updatedAt: -1 })
+      .exec();
     return conversation ? conversation.messages : [];
   }
 
-  async getUserConversations(userId: string): Promise<Conversation[]> {
-    return this.conversationModel
-      .find({
-        $or: [{ sender: userId }, { receiver: userId }],
-      })
-      .populate('messages');
+  async getConversation(currentUserId: string): Promise<any[]> {
+    if (currentUserId) {
+      const currentUserConversation = await this.conversationModel
+        .find({
+          $or: [{ sender: currentUserId }, { receiver: currentUserId }],
+        })
+        .sort({ updateAt: -1 })
+        .populate('messages')
+        .populate('sender')
+        .populate('receiver');
+      const conversation = currentUserConversation.map((conv) => {
+        const countUnseenMsg = conv?.messages?.reduce((prev, curr) => {
+          const msgByUserId = curr?.msgByUserId?.toString();
+          if (msgByUserId !== currentUserId) return prev + (curr.seen ? 0 : 1);
+          else return prev;
+        }, 0);
+        return {
+          _id: conv?._id,
+          sender: conv?.sender,
+          receiver: conv?.receiver,
+          unseenMsg: countUnseenMsg,
+          lastMsg: conv.messages[conv?.messages?.length - 1],
+        };
+      });
+      return conversation;
+    } else {
+      return [];
+    }
   }
 }

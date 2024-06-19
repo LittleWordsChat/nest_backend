@@ -36,25 +36,31 @@ export class ChatGateway
   }
 
   async handleConnection(client: Socket): Promise<void> {
-    this.logger.log(`Client connected ${client.id}`);
+    try {
+      this.logger.log(`Client connected ${client.id}`);
 
-    const token = client.handshake.auth.token || client.handshake.headers.token;
-    const decoded = this.jwtService.verify(token);
-    const user = await this.usersService.findOneById(decoded.sub);
+      const token =
+        client.handshake.auth.token || client.handshake.headers.token;
+      const decoded = await this.jwtService.verify(token);
+      const user = await this.usersService.findOneById(decoded.sub);
 
-    if (user) {
-      client.join(user._id.toString());
-      this.onlineUsers.add(user._id.toString());
-      this.server.emit('onlineUsers', Array.from(this.onlineUsers));
-    } else {
-      client.disconnect();
+      if (user) {
+        client['user'] = user;
+        client.join(user._id.toString());
+        this.onlineUsers.add(user._id.toString());
+        this.server.emit('onlineUsers', Array.from(this.onlineUsers));
+      } else {
+        client.disconnect();
+      }
+    } catch (error) {
+      this.server.emit('auth-error', error.message);
+      //this.handleDisconnect(client);
     }
   }
 
   handleDisconnect(client: Socket): void {
-    const token = client.handshake.auth.token || client.handshake.headers.token;
-    const decoded = this.jwtService.verify(token);
-    this.onlineUsers.delete(decoded.sub.toString());
+    const user = client['user'];
+    this.onlineUsers.delete(user?._id.toString());
     this.logger.log(`Client disconnect ${client.id}`);
     this.server.emit('onlineUsers', Array.from(this.onlineUsers));
   }
@@ -62,96 +68,120 @@ export class ChatGateway
   @SubscribeMessage('message-page')
   async handleMessagePage(
     @ConnectedSocket() client: Socket,
-    @MessageBody() data: { userId: string },
+    @MessageBody() userId: string,
   ): Promise<void> {
-    const { userId } = data;
-    const user = await this.usersService.findOneById(userId);
-    const payload = {
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      profile_pic: user.profile_pic,
-      online: this.onlineUsers.has(userId),
-    };
-    client.emit('message-user', payload);
+    try {
+      const token =
+        client.handshake.auth.token || client.handshake.headers.token;
+      await this.jwtService.verify(token);
+      const user = client['user'];
+      const payload = {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        profile_pic: user.profile_pic,
+        online: this.onlineUsers.has(userId),
+      };
+      client.emit('message-user', payload);
 
-    const conversationMessages =
-      await this.conversationsService.getConversationMessages(
-        user._id.toString(),
-        userId,
-      );
-    client.emit('message', conversationMessages);
+      const conversationMessages =
+        await this.conversationsService.getConversationMessages(
+          user._id.toString(),
+          userId,
+        );
+      client.emit('message', conversationMessages);
+    } catch (error) {
+      this.server.emit('auth-error', error.message);
+    }
   }
 
-  @SubscribeMessage('newMessage')
+  @SubscribeMessage('new-message')
   async handleNewMessage(
     @ConnectedSocket() client: Socket,
     @MessageBody() data: any,
   ): Promise<void> {
-    const conversation =
-      await this.conversationsService.findOrCreateConversation(
-        data.sender,
-        data.receiver,
-      );
-    const message = await this.messagesService.createMessage({
-      text: data.text,
-      imageUrl: data.imageUrl,
-      videoUrl: data.videoUrl,
-      msgByUserId: data.msgByUserId,
-    });
+    try {
+      const token =
+        client.handshake.auth.token || client.handshake.headers.token;
+      await this.jwtService.verify(token);
+      const conversation =
+        await this.conversationsService.findOrCreateConversation(
+          data.sender,
+          data.receiver,
+        );
+      const message = await this.messagesService.createMessage({
+        text: data.text,
+        imageUrl: data.imageUrl,
+        videoUrl: data.videoUrl,
+        msgByUserId: data.msgByUserId,
+      });
 
-    await this.conversationsService.addMessageToConversation(
-      conversation._id.toString(),
-      message._id.toString(),
-    );
-
-    const updatedMessages =
-      await this.conversationsService.getConversationMessages(
-        data.sender,
-        data.receiver,
+      await this.conversationsService.addMessageToConversation(
+        conversation._id.toString(),
+        message._id.toString(),
       );
 
-    this.server.to(data.sender).emit('message', updatedMessages);
-    this.server.to(data.receiver).emit('message', updatedMessages);
+      const getConversationMessage =
+        await this.conversationsService.getConversationMessages(
+          data.sender,
+          data.receiver,
+        );
 
-    const conversationSender =
-      await this.conversationsService.getUserConversations(data.sender);
-    const conversationReceiver =
-      await this.conversationsService.getUserConversations(data.receiver);
+      this.server.to(data.sender).emit('message', getConversationMessage);
+      this.server.to(data.receiver).emit('message', getConversationMessage);
 
-    this.server.to(data.sender).emit('conversation', conversationSender);
-    this.server.to(data.receiver).emit('conversation', conversationReceiver);
+      const conversationSender =
+        await this.conversationsService.getConversation(data.sender);
+      const conversationReceiver =
+        await this.conversationsService.getConversation(data.receiver);
+
+      this.server.to(data.sender).emit('conversation', conversationSender);
+      this.server.to(data.receiver).emit('conversation', conversationReceiver);
+    } catch (error) {
+      this.server.emit('auth-error', error.message);
+    }
   }
 
   @SubscribeMessage('sidebar')
   async handleSidebar(
     @ConnectedSocket() client: Socket,
-    @MessageBody() data: { currentUserId: string },
+    @MessageBody() currentUserId: string,
   ): Promise<void> {
-    const { currentUserId } = data;
-    const conversations =
-      await this.conversationsService.getUserConversations(currentUserId);
-    client.emit('conversation', conversations);
+    try {
+      const token =
+        client.handshake.auth.token || client.handshake.headers.token;
+      await this.jwtService.verify(token);
+      const conversations =
+        await this.conversationsService.getConversation(currentUserId);
+      client.emit('conversation', conversations);
+    } catch (error) {
+      this.server.emit('auth-error', error.message);
+    }
   }
 
   @SubscribeMessage('seen')
   async handleSeen(
     @ConnectedSocket() client: Socket,
-    @MessageBody() data: { msgByUserId: string },
+    @MessageBody() msgByUserId: string,
   ): Promise<void> {
-    const { msgByUserId } = data;
-    const token = client.handshake.auth.token || client.handshake.headers.token;
-    const decoded = this.jwtService.verify(token);
-    const userId = decoded.sub;
+    try {
+      const token =
+        client.handshake.auth.token || client.handshake.headers.token;
+      await this.jwtService.verify(token);
+      const user = client['user'];
+      const userId = user._id;
 
-    await this.messagesService.markMessageAsSeen(userId, msgByUserId);
+      await this.messagesService.markMessageAsSeen(userId, msgByUserId);
 
-    const conversationSender =
-      await this.conversationsService.getUserConversations(userId);
-    const conversationReceiver =
-      await this.conversationsService.getUserConversations(msgByUserId);
+      const conversationSender =
+        await this.conversationsService.getConversation(userId);
+      const conversationReceiver =
+        await this.conversationsService.getConversation(msgByUserId);
 
-    this.server.to(userId).emit('conversation', conversationSender);
-    this.server.to(msgByUserId).emit('conversation', conversationReceiver);
+      this.server.to(userId).emit('conversation', conversationSender);
+      this.server.to(msgByUserId).emit('conversation', conversationReceiver);
+    } catch (error) {
+      this.handleDisconnect(client);
+    }
   }
 }

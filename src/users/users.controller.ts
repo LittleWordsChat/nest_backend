@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   HttpStatus,
+  Post,
   Put,
   Req,
   Res,
@@ -35,6 +36,27 @@ export class UsersController {
   ) {
     const userId = req.user['_id'];
     const updatedUser = await this.usersService.update(userId, updateUserDto);
-    return res.json(HttpStatus.NO_CONTENT).send();
+    return res.status(HttpStatus.OK).json({
+      message: 'user update successfully',
+      data: updatedUser,
+      success: true,
+    });
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('search-user')
+  async searchUser(@Body() body: any, @Res() res: Response) {
+    const { search } = body;
+    try {
+      const user = await this.usersService.searchUser(search);
+      return res
+        .status(HttpStatus.OK)
+        .json({ message: 'all user', data: user, success: true });
+    } catch (error) {
+      return res.status(500).json({
+        message: error.message || error,
+        error: true,
+      });
+    }
   }
 }

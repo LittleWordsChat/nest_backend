@@ -33,4 +33,14 @@ export class UsersService {
     Object.assign(existingUser, updateUserDto);
     return existingUser.save();
   }
+
+  async searchUser(search: any) {
+    const query = new RegExp(search, 'i');
+    return await this.userModel
+      .find({
+        $or: [{ name: query }, { email: query }],
+      })
+      .select('-password')
+      .exec();
+  }
 }
