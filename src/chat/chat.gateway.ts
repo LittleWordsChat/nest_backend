@@ -75,11 +75,12 @@ export class ChatGateway
         client.handshake.auth.token || client.handshake.headers.token;
       await this.jwtService.verify(token);
       const user = client['user'];
+      const userDetails = await this.usersService.findOneById(userId);
       const payload = {
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        profile_pic: user.profile_pic,
+        _id: userDetails._id,
+        name: userDetails.name,
+        email: userDetails.email,
+        profile_pic: userDetails.profile_pic,
         online: this.onlineUsers.has(userId),
       };
       client.emit('message-user', payload);
