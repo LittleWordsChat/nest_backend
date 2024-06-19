@@ -41,7 +41,9 @@ export class ChatGateway
 
       const token =
         client.handshake.auth.token || client.handshake.headers.token;
+      console.log(token)
       const decoded = await this.jwtService.verify(token);
+      console.log(decoded)
       const user = await this.usersService.findOneById(decoded.sub);
 
       if (user) {
