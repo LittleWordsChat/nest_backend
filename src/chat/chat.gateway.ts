@@ -173,7 +173,9 @@ export class ChatGateway
       await this.jwtService.verify(token);
       const user = client['user'];
       console.log("User", user);
-      const userId = user._id;
+      const userId = user._id.toString();
+
+      console.log(userId);
 
       await this.messagesService.markMessageAsSeen(userId, msgByUserId);
 
