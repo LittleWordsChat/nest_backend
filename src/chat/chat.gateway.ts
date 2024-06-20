@@ -41,9 +41,7 @@ export class ChatGateway
 
       const token =
         client.handshake.auth.token || client.handshake.headers.token;
-      console.log(token);
       const decoded = await this.jwtService.verify(token);
-      console.log(decoded);
       const user = await this.usersService.findOneById(decoded.sub);
 
       if (user) {
@@ -66,7 +64,6 @@ export class ChatGateway
     @MessageBody() userId: string,
   ): Promise<void> {
     try {
-      console.log('1', userId);
       const token =
         client.handshake.auth.token || client.handshake.headers.token;
       await this.jwtService.verify(token);
@@ -88,7 +85,6 @@ export class ChatGateway
         );
       client.emit('message', conversationMessages);
     } catch (error) {
-      console.log('error 1', error);
       this.server.emit('auth-error', error.message);
     }
   }
@@ -99,7 +95,6 @@ export class ChatGateway
     @MessageBody() data: any,
   ): Promise<void> {
     try {
-      console.log('2', data);
       const token =
         client.handshake.auth.token || client.handshake.headers.token;
       await this.jwtService.verify(token);
@@ -137,7 +132,6 @@ export class ChatGateway
       this.server.to(data.sender).emit('conversation', conversationSender);
       this.server.to(data.receiver).emit('conversation', conversationReceiver);
     } catch (error) {
-      console.log('error 2', error);
       this.server.emit('auth-error', error.message);
     }
   }
@@ -148,7 +142,6 @@ export class ChatGateway
     @MessageBody() currentUserId: string,
   ): Promise<void> {
     try {
-      console.log('3', currentUserId);
       const token =
         client.handshake.auth.token || client.handshake.headers.token;
       await this.jwtService.verify(token);
@@ -156,7 +149,6 @@ export class ChatGateway
         await this.conversationsService.getConversation(currentUserId);
       client.emit('conversation', conversations);
     } catch (error) {
-      console.log('error 3', error);
       this.server.emit('auth-error', error.message);
     }
   }
@@ -167,26 +159,19 @@ export class ChatGateway
     @MessageBody() msgByUserId: string,
   ): Promise<void> {
     try {
-      console.log('4', msgByUserId);
       const token =
         client.handshake.auth.token || client.handshake.headers.token;
       await this.jwtService.verify(token);
       const user = client['user'];
-      console.log('User', user);
       const userId = user._id.toString();
       await this.messagesService.markMessageAsSeen(userId, msgByUserId);
-      console.log('4.1', msgByUserId);
       const conversationSender =
         await this.conversationsService.getConversation(userId);
-      console.log('4.2', msgByUserId);
       const conversationReceiver =
         await this.conversationsService.getConversation(msgByUserId);
-      console.log('4.3', msgByUserId);
       this.server.to(userId).emit('conversation', conversationSender);
-      console.log('4.4', msgByUserId);
       this.server.to(msgByUserId).emit('conversation', conversationReceiver);
     } catch (error) {
-      console.log('error 4', error);
       this.server.emit('auth-error', error.message);
     }
   }
