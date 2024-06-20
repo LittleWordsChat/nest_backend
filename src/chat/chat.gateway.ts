@@ -88,6 +88,7 @@ export class ChatGateway
         );
       client.emit('message', conversationMessages);
     } catch (error) {
+      console.log('error 1', error);
       this.server.emit('auth-error', error.message);
     }
   }
@@ -136,6 +137,7 @@ export class ChatGateway
       this.server.to(data.sender).emit('conversation', conversationSender);
       this.server.to(data.receiver).emit('conversation', conversationReceiver);
     } catch (error) {
+      console.log('error 2', error);
       this.server.emit('auth-error', error.message);
     }
   }
@@ -154,6 +156,7 @@ export class ChatGateway
         await this.conversationsService.getConversation(currentUserId);
       client.emit('conversation', conversations);
     } catch (error) {
+      console.log('error 3', error);
       this.server.emit('auth-error', error.message);
     }
   }
@@ -181,6 +184,7 @@ export class ChatGateway
       this.server.to(userId).emit('conversation', conversationSender);
       this.server.to(msgByUserId).emit('conversation', conversationReceiver);
     } catch (error) {
+      console.log('error 4', error);
       this.server.emit('auth-error', error.message);
     }
   }
