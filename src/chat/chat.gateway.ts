@@ -172,6 +172,7 @@ export class ChatGateway
         client.handshake.auth.token || client.handshake.headers.token;
       await this.jwtService.verify(token);
       const user = client['user'];
+      console.log("User", user);
       const userId = user._id;
 
       await this.messagesService.markMessageAsSeen(userId, msgByUserId);
