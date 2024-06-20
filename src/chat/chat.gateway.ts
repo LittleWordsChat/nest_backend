@@ -172,19 +172,18 @@ export class ChatGateway
         client.handshake.auth.token || client.handshake.headers.token;
       await this.jwtService.verify(token);
       const user = client['user'];
-      console.log("User", user);
+      console.log('User', user);
       const userId = user._id.toString();
-
-      console.log(userId);
-
       await this.messagesService.markMessageAsSeen(userId, msgByUserId);
-
+      console.log('4.1', msgByUserId);
       const conversationSender =
         await this.conversationsService.getConversation(userId);
+      console.log('4.2', msgByUserId);
       const conversationReceiver =
         await this.conversationsService.getConversation(msgByUserId);
-
+      console.log('4.3', msgByUserId);
       this.server.to(userId).emit('conversation', conversationSender);
+      console.log('4.4', msgByUserId);
       this.server.to(msgByUserId).emit('conversation', conversationReceiver);
     } catch (error) {
       console.log('error 4', error);
