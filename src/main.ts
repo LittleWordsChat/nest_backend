@@ -7,7 +7,7 @@ async function bootstrap() {
   const port = process.env.PORT || 8080;
 
   app.enableCors({
-    origin: true,
+    origin: process.env.FRONTEND_URL,
     credentials: true,
   });
   app.useGlobalPipes(new ValidationPipe());
